@@ -1,0 +1,85 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      mutation_tests:
+        description: Also run the mutation tests (78 compiled defects, slow)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build the plugin (Release, Win32)
+        run: python build.py
+
+      - name: Check the DLL is 32-bit and exports the SKSE and KHA-OS entry points
+        shell: pwsh
+        run: |
+          $dll = "build\ShowPlayerInInventoryLE.dll"
+          $bytes = [System.IO.File]::ReadAllBytes($dll)
+          $pe = [BitConverter]::ToInt32($bytes, 0x3C)
+          $machine = [BitConverter]::ToUInt16($bytes, $pe + 4)
+          if ($machine -ne 0x14C) { throw "$dll is not an x86 DLL (machine $machine)" }
+          $text = [System.Text.Encoding]::ASCII.GetString($bytes)
+          foreach ($name in @("SKSEPlugin_Query", "SKSEPlugin_Load", "KHAOS_Query", "KHAOS_SetHosted",
+                              "KHAOS_ToggleMenu", "KHAOS_IsMenuOpen", "KHAOS_RenderFrame", "KHAOS_ProcessWndProc")) {
+            if (-not $text.Contains($name)) { throw "$dll is missing export $name" }
+          }
+          Write-Host "$dll : x86, $($bytes.Length) bytes, exports present"
+
+      # The offline fixture: a fake game in an owned child process, under a native supervisor.
+      - name: Build the offline fixture
+        run: python build.py --tests
+
+      - name: Run the fixture
+        run: python run_harness.py
+
+      - name: Prove the supervisor terminates a stalled child
+        run: python run_harness.py --prove-timeout
+
+      - name: Package
+        shell: pwsh
+        run: |
+          # mod-manager layout: the archive root is the Data folder
+          $out = "package\SKSE\Plugins"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          Copy-Item build\ShowPlayerInInventoryLE.dll $out
+          Copy-Item dist\Data\SKSE\Plugins\ShowPlayerInInventoryLE.ini $out
+          Copy-Item LICENSE package\ShowPlayerInInventoryLE-LICENSE.txt
+          Copy-Item NOTICE.md package\ShowPlayerInInventoryLE-NOTICE.md
+          Copy-Item licenses package\licenses -Recurse
+
+      # The development build: install it as its own mod. See docs/STATUS.md.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShowPlayerInInventoryLE
+          path: package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-inputs
+          path: build\build-inputs.json
+
+  mutation:
+    if: github.event_name == 'workflow_dispatch' && inputs.mutation_tests
+    runs-on: windows-2022
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Run the mutation tests
+        shell: pwsh
+        run: python mutation_tests.py --sdk sdk --msbuild (Get-Command MSBuild.exe).Source

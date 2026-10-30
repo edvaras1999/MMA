@@ -1,0 +1,144 @@
+CORRESPONDING SOURCE - Show Player In Inventory LE 2.4-test7
+
+ShowPlayerInInventoryLE contains the source used to build the LE DLL and native
+fixture. original-Show-Player-In-Inventory is the supplied upstream source verbatim.
+original-SKSE carries the SDK headers and source, not prebuilt libraries. Dear ImGui
+is carried verbatim inside the port's ThirdParty folder. Licenses are retained.
+
+BUILD
+Windows, Visual Studio 2022 C++ tools (v143, Win32), Windows SDK, Python 3.
+Open a VS developer shell in Source/ShowPlayerInInventoryLE and run:
+  python build.py
+  python build.py --tests
+  python run_harness.py
+  python run_harness.py --prove-timeout
+  python mutation_tests.py --sdk ../original-SKSE --msbuild MSBuild.exe
+If MSBuild is not on PATH, pass --msbuild with its executable location.
+The default SDK is the sibling original-SKSE folder. An external equivalent LE
+SDK can be selected with --sdk or SKSE_LE_SDK. Nothing is downloaded.
+The build compiles the SDK/common implementation directly; no common_vc9.lib
+or prebuilt library is needed. Outputs are under build/. Manifests bind the
+result to the source hashes. Tests reserve fake engine addresses in an owned,
+suspended child; they do not load Skyrim or modify an installed game.
+
+PORTING NOTES
+The LE runtime is fixed to 1.9.32.0.8 / SKSE 1.7.3 and uses x86 ABIs. No SE
+address or virtual slot is used as an LE fact. The camera constructor and
+SetNode/Update distinction, menu AdvanceMovie callers/destructors, blur counter,
+input dispatcher, container reference handles and native actor-animation call
+were examined in the existing TESV Ghidra project. The LE RaceSex ProcessMessage
+also calls the actor animation slot with an unscaled frame interval.
+PlayerCamera slot1 is SetNode at 0083C0B0; generic Update is 00653480. Menu advance
+uses slot5/RET8; deleting destructors use slot0/RET4. Player animation slot7D at
+00734E80 uses a float/RET4. Blur contribution ownership must be restored before
+native menu deletion. Projection restores only its four owned planes, retaining
+other providers' near/far/orthographic changes. Facial state reuses previously
+verified LE face-chain/lock/pool helpers with same-live-data restoration checks.
+All new discoveries are also recorded in the workshop's CommonLibLE and knowledge
+base. Those maintenance databases and TESV.exe are not build dependencies.
+
+LIMITS
+Mock-native checks establish the covered invariants, not real rendering, physics,
+load-order compatibility or runtime performance. In-game acceptance is pending.
+The port guide lists differences from the SE implementation. No third-party API
+compatibility, headtracking reset or forced physics step is claimed without proof.
+
+TEST2 CORRECTIONS
+The first build could remember an early foreign UI thread before confirming the
+camera owner. Cleanup now uses the observed owner, and other threads submit an
+atomic reset request for that owner's next frame. Reset messages no longer mutate
+transient camera state directly from foreign threads. The idle path keeps live
+menu probes and does not retain a page-validation cache. Negative controls verify
+the 11-to-5 idle probe reduction, owner reset, continuous controller deadzone,
+settings save grouping, camera child traversal and stale panel input cleanup.
+The native fixture tests actual queued resets from a second Windows thread.
+
+A teardown marker survives coalesced PreLoad/PostLoad requests from another thread.
+Deferred teardown cleanup releases owned controls/references and abandons scene
+snapshots; a new scene never receives the old FOV, projection or forced perspective.
+
+TEST3 PREVIEW FIX
+The original upstream default showed item models. The requested LE default hides
+previews; unversioned INIs migrate once, preserving explicit versioned preferences.
+A bounded set of pinned NiAVObjects tracks all current inline or heap model entries,
+preserves initially culled objects and restores only owned visibility. Prompt/input
+ownership is independent from preview visibility. No new engine hook was installed.
+Ghidra confirms menu Render includes movie display as well as Inventory3DManager
+work, in opposite orders for inventory and magic: skipping Render would remove UI.
+Additional render-path facts were fed to the workshop database; they are not newly
+called addresses. Native model visibility remains controlled through its AppCulled
+bit as in the existing Clear3D path. Offline coverage includes legacy configuration,
+quantity/settings prompts, multiple models, repeated selection and reference cleanup.
+
+TEST4 FRONTAL VIEW AND PAUSED DISPLAY
+The old pass only framed after menu advance; a later native third-person update
+could replace the transform. Its existing chained state hook now reapplies framing
+only for the live owned state/menu/thread, without fighting pending transitions.
+Test4 waited for Tween completion; test5 removes that incorrect assumption.
+Reset a remembered orbit optionally, repair a
+late native first-person return and use validated rendered model heading. The
+framing wrapper releases its recursion guard through __finally on native faults.
+RaceSex ProcessMessage (existing LE Ghidra proof) calls player animation slot7D
+and later NiAVObject::Update; the upstream SE source also propagates the player
+scene after animation. The LE backend previously omitted that scene propagation.
+It now updates the live loaded root with aligned zero-time context before framing,
+only for its forced paused-animation path. No extra light, global exposure edit,
+new engine site or new hook is introduced. All views and inputs remain menu-driven.
+The fixture includes interleaved native overwrites, actual-model/reference-heading
+mismatch, optional orbit reset, Tween order, pose propagation, unpaused/frozen modes,
+invalid-transform transactional projection and pending camera handoff. A first
+position-sign-only heading test failed to reject its counterfactual because screen
+framing also offsets position; the regression now checks the actual view basis.
+
+Framing now shifts the frustum centre rather than translating the eye laterally:
+centreX=tan(horizontalFOV/2)*(1-2*screenX),
+centreY=verticalHalfSpan*(2*screenY-1).
+The eye remains on the model-facing axis. A right-side portrait at screenX0.75
+therefore stays frontal; the previous translation produced an oblique view.
+Tests check both physical eye alignment and normalized target screen coordinates.
+
+TEST5 NATIVE PARENT/CHILD LIFETIME
+A5CE90 reads IMenu.flags+10 bit40 (registered/open), not foreground visibility.
+895170 opens the Inventory child and invokes HideMenu on Tween without closing the
+parent in that branch. The old test mock falsely closed the parent on child open.
+New tests first failed against test4 with the retained parent, then pass after the
+child-priority fix. Original camera state hooks remain chained. Generic SetState
+resumes the foreground parent, preserving the previous state saved by native Tab;
+the plugin does not call the enter-Tween routine that would overwrite that history.
+840F50 restores native base FOV from state+20 to parent+AC. Capture after SetState
+has ended Tween, before owned framing, and retain the post-Tween lens baseline.
+Tween destructor895810 returns one parent blur contribution;8958D0 is its deleting
+wrapper. Its original Update message0 can reinstate blur when count is zero. Repay
+our parent loan before forwarding that update and borrow it again afterward if the
+child still owns the view, retaining original return values and other contributions.
+Two added vtable hooks (Tween deleting destructor/message processor) have direct
+LE decompilation, constructor/RTTI, caller and raw RET evidence in the workshop.
+No SE offsets, key hook, extra runtime dependency or global blur reset was added.
+
+
+TEST6 PERFORMANCE AUDIT
+The test5 camera called NiAVObject_Update even for identical live camera state.
+The new scalar snapshot compares the live pinned projection's complete camera
+suffix plus its local/world transforms, the desired root local/world transforms,
+FOV and desired owned planes. A mismatch commits immediately; no pointer-readiness
+cache, scene cadence reduction, physics hook or new engine function is introduced.
+The inactive wheel sink now returns before inspecting the engine event list.
+The actual-source fixture checks stable work counts and each invalidation, active
+wheel delivery, log-disabled zero timer reads and one-in-64 sampling bounds.
+Per-session timing summaries are emitted on preview teardown, with inclusive cost
+and sparse-sampling limits. The fixture's native functions are stubs, so its elapsed
+time is not evidence of live animation, physics, shader or GPU frame cost.
+
+
+TEST7 FINAL PROJECTION OWNERSHIP
+The retained test6 camera tests stopped at menu/camera-state callbacks. Native
+BSSceneGraph FOV setup can later write a symmetric frustum and call node Update;
+NiCamera UpdateWorldData then constructs the actual asymmetric world-to-screen
+matrix. The new chained NiCamera vtable slot2D callback repairs only the pinned
+portrait camera planes before forwarding the original context exactly once.
+It does not call NodeUpdate recursively or update animation/physics.
+The fixture consumes screen placement inside the original fake matrix builder,
+after a late centered-frustum overwrite. This catches a missing repair and a repair
+after matrix consumption. Tests cover2000 resets, current frustum spans, vertical
+placement, native clip, unrelated camera/context, foreign thread, blocked/disabled/
+orthographic/state handoff and both inventory routes. New default fallback is0.82.

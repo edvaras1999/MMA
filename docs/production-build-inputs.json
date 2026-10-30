@@ -1,0 +1,31 @@
+{
+  "binary_sha256": "cc78aa7871d94bbbdea41b675fd897abddd60a63c9b3e09cd2a98aa08544ccd2",
+  "sources": {
+    "src\\Engine.cpp": "fbb719faeda944cf5d3c6ac1954c9f544be69470a96f136e8e9e0a9eeb24fec9",
+    "src\\exports.def": "725d24cd98d1db9a06b66f65b21665af13e5a01767a70a8eeb1a891bf3a2de85",
+    "src\\KhaosAPI.h": "fcef893327df82acb11ee7b5fdb08df35195903f10305dc405df1cd33a8005d6",
+    "src\\main.cpp": "10ce30c4278fc43fc5afd00177c55bd9f2a95c3366a424024432085501057bd0",
+    "src\\Prefix.h": "90a675ca13ac6ab4c410b8e5679d7f9f7d9848df0f74a85bfc8cb69bd006927d",
+    "src\\Runtime.h": "5970d2c5c96690ffbe6934884e72f50c2d79bce0fde7e46d2759b5f1fc0adbef",
+    "src\\Settings.cpp": "2a7134a4e1950dca921401df538d1ad98694dde87480740ff9dea233f04d9925",
+    "src\\Settings.h": "417b2e55c8fd8c3c14b8557f4809860a4268fb8d26aa1131cab43d98b11e3bf1",
+    "src\\Signatures.h": "3683f8cb87e418fba7649742017345e5f843c99cfcfb868b900bda2da812b948",
+    "src\\UI.cpp": "f5fe3013fe66f9bef05f81c677e99677498eb6dbae05977a1d7111d0452fb90a",
+    "src\\Verify.cpp": "8ec0c2071830a318fbbb0f2be2924567a204b023807632db9d0b0802b6e1cb1d",
+    "ThirdParty\\imgui\\imconfig.h": "1353bfa59da16eec481723fd4e5d910356f0406b79e3c4142e0c9867bafffab5",
+    "ThirdParty\\imgui\\imgui.h": "ea07ece0a81662ead4711be1a31e452c4ec191d4b6523efb99c658e48df9458c",
+    "ThirdParty\\imgui\\imgui_internal.h": "b2fa332e1aacbee20dd731a62592991795bd259490fb222afeb0cc089fc6ff20",
+    "ThirdParty\\imgui\\imstb_rectpack.h": "889b396795202d1457560a797a7242e96f6f132d4b88ca2d69be58bf05e1771f",
+    "ThirdParty\\imgui\\imstb_textedit.h": "a985f5fa0ed97353d493b497961e9eef52082edcd045cf6954b69990ec9d0741",
+    "ThirdParty\\imgui\\imstb_truetype.h": "c51a0f7e7ea760f2366bd3752635ec58e21fccfec4a832501639990ba6ce0528",
+    "ThirdParty\\imgui\\backends\\imgui_impl_dx9.h": "fbc5eec4e8427b2af0b1e25753ad3e3e22967b64fa2fc9813e032499867af16d",
+    "ThirdParty\\imgui\\backends\\imgui_impl_win32.h": "2736595b8de1e56871661d5d9b96deec567d35521746fbe2ade8f0543acdfd2b",
+    "ThirdParty\\imgui\\imgui.cpp": "bbb407eb380c44befe6a1681bf8a14e25e3e11c8436ca4b23988d26db8f58ac2",
+    "ThirdParty\\imgui\\imgui_draw.cpp": "a8afce1974458112cc8564cecd69dd64263f0ff69974c1fd705deba9e15f2572",
+    "ThirdParty\\imgui\\imgui_tables.cpp": "af259a05d1e788b9c94fd9a21cc81ed0107a06f24a4629c9f23949ef57b3c9dc",
+    "ThirdParty\\imgui\\imgui_widgets.cpp": "8340487aa12976c0113a6b7b03385e72ba04ee299215333938f03a79b4910e99",
+    "ThirdParty\\imgui\\backends\\imgui_impl_dx9.cpp": "509921a4f045d96fd61a5956fdb15066b4ddc29fbe56ac0dc72b59c31d6b121f",
+    "ThirdParty\\imgui\\backends\\imgui_impl_win32.cpp": "6a602ce28470bb209636c40633156e63a530acd49f137819d837d80688d52df6",
+    "ShowPlayerInInventoryLE.vcxproj": "3eee0c8edbe6dec7399f0a8cf4e9f33e7113c9596a928a575ef7e9588688017b"
+  }
+}

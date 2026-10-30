@@ -1,0 +1,47 @@
+name: Bug report
+description: Something does not work in Show Player In Inventory LE
+labels: [bug]
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Plugin (2.4-test7?), Skyrim LE (1.9.32.0.8?), SKSE (1.7.3?) and KHA-OS if installed
+    validations:
+      required: true
+  - type: dropdown
+    id: menu
+    attributes:
+      label: Menu
+      options: [Inventory (I key), Inventory (Tab route), Magic, Barter, Container, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: view
+    attributes:
+      label: Camera before opening the menu
+      options: [1st person, 3rd person, Both / not sure]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Other mods
+      description: Camera mods, SmoothCam, Skyrim Souls, UI and face mods, ENB / ReShade. Does it still happen with them disabled?
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log, screenshot or video
+      description: With bEnableLogging=1, Documents\My Games\Skyrim\SKSE\ShowPlayerInInventoryLE.log
